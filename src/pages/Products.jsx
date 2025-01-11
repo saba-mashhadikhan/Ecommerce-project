@@ -297,7 +297,8 @@ const Products = () => {
       <div className="product-list gap-4 p-4">
       <div className="grid grid-cols-2 gap-6 mx-4 md:grid-cols-3 lg:grid-cols-4">
                  {currentProducts.map((product, index) => (
-                <Link to={`/product/${product.id}`} key={index} className="group">
+                <a key={index} className="group">
+                     <Link to={`/product/${product.id}`}>
                      <div className="relative">
                     <img className="relative rounded-2xl w-full h-[380px] object-cover" src={product.image} alt={product.title} />
                     <img
@@ -315,7 +316,8 @@ const Products = () => {
                         </div>
                     </div>
                 </div>
-                </Link>
+                     </Link>
+                </a>
                
                  ))}        
 

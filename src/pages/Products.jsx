@@ -20,7 +20,7 @@ const Products = () => {
       setSelectedBrands(savedBrands);
       setSelectedColors(savedColors);
 
-        axios.get('http://localhost:4000/product')
+        axios.get('https://ecommerce-data-6460.onrender.com/product')
         .then(res => setData(res.data))
         .catch(err => console.log(err) )
     },[])

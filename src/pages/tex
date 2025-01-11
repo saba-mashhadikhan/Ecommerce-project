@@ -1,0 +1,353 @@
+import React from "react";
+import Navbar from "../components/Navbar";
+import { useState, useEffect } from "react";
+import Footer from "../components/Footer";
+import Price from "../components/Price";
+import axios from "axios";
+
+
+const Products = () => {
+  const [data, setData] = useState([]);
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedColors, setSelectedColors] = useState([]);
+  
+
+  
+    useEffect (() => {
+      const savedBrands = JSON.parse(localStorage.getItem("selectedBrands")) || [];
+      const savedColors = JSON.parse(localStorage.getItem("selectedColors")) || [];
+      setSelectedBrands(savedBrands);
+      setSelectedColors(savedColors);
+
+        axios.get('http://localhost:4000/product')
+        .then(res => setData(res.data))
+        .catch(err => console.log(err) )
+    },[])
+
+    const handleBrandChange = (brand) => {
+      const updatedBrands = selectedBrands.includes(brand)
+        ? selectedBrands.filter((item) => item !== brand)
+        : [...selectedBrands, brand];
+  
+      setSelectedBrands(updatedBrands);
+      localStorage.setItem("selectedBrands", JSON.stringify(updatedBrands)); // ذخیره در LocalStorage
+    };
+
+    const handleColorChange = (color) => {
+      const updatedColors = selectedColors.includes(color)
+        ? selectedColors.filter((item) => item !== color)
+        : [...selectedColors, color];
+
+        setSelectedColors(updatedColors);
+        localStorage.setItem("selectedColors", JSON.stringify(updatedColors));
+      };
+  
+ const filteredProducts = data.filter((product) => {
+    const matchesBrand =
+      selectedBrands.length === 0 || selectedBrands.includes(product.brand);
+    const matchesColor =
+      selectedColors.length === 0 || selectedColors.includes(product.color);
+    return matchesBrand && matchesColor;
+  });
+    
+  const products = Array.from({ length: 50 }, (_, index) => ({
+    id: index + 1,
+    name: `Product ${index + 1}`,
+  }));
+
+  // تعداد محصولات در هر صفحه
+  const itemsPerPage = 8;
+
+  // مقدار صفحه فعلی از localStorage یا مقدار پیش‌فرض 1
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(localStorage.getItem("currentPage")) || 1
+  );
+
+  // محاسبه تعداد کل صفحات
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  // محاسبه محصولات موجود در صفحه فعلی
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+
+  // تغییر صفحه و ذخیره آن در localStorage
+  const changePage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    localStorage.setItem("currentPage", pageNumber); // ذخیره شماره صفحه
+  };
+
+  const [isBrandMenuOpen, setIsBrandMenuOpen] = useState(false);
+  const [isColorMenuOpen, setIsColorMenuOpen] = useState(false);
+  const [isPriceMenuOpen, setIsPriceMenuOpen] = useState(false);
+
+  
+  const toggleFilter = () => {
+    setIsFilterOpen(!isFilterOpen);
+  };
+
+
+  
+  const toggleBrandMenu = () => {
+    setIsBrandMenuOpen(!isBrandMenuOpen);
+  };
+
+  const toggleColorMenu = () => {
+    setIsColorMenuOpen((prev) => !prev);
+  };
+
+  const togglePriceMenu = () => {
+    setIsPriceMenuOpen((prev) => !prev)
+  };
+
+
+   return(
+    <>
+    <Navbar />
+    <div className="flex p-6 gap-[10px] h-[72px] bg-pro mt-[20px] ">
+        <h1>خانه</h1>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+        <h1>محصولات</h1>
+    </div>
+    <div className="h-[41px] bg-gray1 flex justify-between items-center">
+        <button onClick={() => setIsFilterOpen(!isFilterOpen)}>
+        <div className="flex justify-center items-center w-[95px] border-x-2 mr-[40px] border-white h-[41px]">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+          </svg>
+          <h1>فیلتر</h1>
+        </div>
+        </button>
+        <div className="ml-[40px]">
+            <h1>۲۰ محصول</h1>
+        </div>
+    </div>
+
+     {/* Overlay برای مات کردن صفحه */}
+     {isFilterOpen && (
+        <div
+          className="fixed inset-0 backdrop-blur-sm z-40"
+          onClick={toggleFilter} // کلیک روی Overlay برای بستن همبرگر
+        />
+      )}
+
+    {isFilterOpen && (
+        <div
+          className="fixed top-0 right-0 h-full w-1/3 bg-white shadow-lg z-50 p-4"
+          style={{
+            transition: "transform 0.3s ease",
+            transform: isFilterOpen ? "translateX(0)" : "translateX(100%)",
+          }}
+        >
+         <div>
+          <div className="flex justify-end">
+          <button
+            className="text-black font-bold text-xl mb-4"
+            onClick={() => setIsFilterOpen(false)}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+          </div>
+          <div className="flex justify-between mt-4" onClick={() => setIsBrandMenuOpen(!isBrandMenuOpen)}>
+            <button>
+              <h1 className="text-2xl">برند</h1>
+            </button>
+            <button>
+            {isBrandMenuOpen ? (
+      // آیکون وقتی منو باز است
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+      </svg>
+      ) : (
+      // آیکون وقتی منو بسته است
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      </svg>
+    )}
+            </button>
+          </div>
+          <div>
+            {isBrandMenuOpen && (
+              <div className="mt-4 px-2 rounded-lg">
+              <ul>
+                {["VSTAY", "ZARA", "AKOMOD", "BOSS"].map((brand) => (
+                  <div key={brand} className="flex justify-between mb-3 items-center">
+                    <li className="cursor-pointer">{brand}</li>
+                    <input
+                      type="checkbox"
+                      className="w-6 h-6 border-4 border-gray-300 rounded-md appearance-none checked:bg-black focus:outline-none"
+                      onChange={() => handleBrandChange(brand)}
+                      checked={selectedBrands.includes(brand)}
+                    />
+                  </div>
+                ))}
+              </ul>
+            </div>
+             )}
+            </div>
+            <div className="flex justify-between mt-4" onClick={toggleColorMenu}>
+            <button>
+              <h1 className="text-2xl">رنگ</h1>
+            </button>
+            <button>
+            { isColorMenuOpen ? (
+      // آیکون وقتی منو باز است
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+      </svg>
+      ) : (
+      // آیکون وقتی منو بسته است
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      </svg>
+    )}
+            </button>
+          </div>
+          <div>
+    {isColorMenuOpen && (
+      <div className="flex justify-center">
+      {["gray", "blue", "black", "yellow"].map((color) => (
+        <button
+        className="rounded-md"
+          key={color}
+          onClick={() => handleColorChange(color)}
+          style={{
+            backgroundColor: color,
+            width: "30px",
+            height: "30px",
+            margin: "5px",
+            border: selectedColors.includes(color) ? "4px solid black" : "none",
+          }}
+        ></button>
+      ))}
+    </div>
+    )}
+  </div>
+  <div className="flex justify-between mt-4" onClick={togglePriceMenu}>
+            <button>
+              <h1 className="text-2xl">قیمت</h1>
+            </button>
+            <button>
+            { isPriceMenuOpen ? (
+      // آیکون وقتی منو باز است
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+      </svg>
+      ) : (
+      // آیکون وقتی منو بسته است
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      </svg>
+    )}
+            </button>
+          </div>
+          <div>
+    {isPriceMenuOpen && (
+      <div className="flex justify-center mt-4 p-4">
+        <Price />
+      </div>
+    )}
+  </div>
+         </div>
+        </div>
+      )}
+    <div className="flex justify-center mt-4">
+      <div className="product-list grid gap-4 p-4">
+      <div className="flex gap-6 mx-4">
+                 {currentProducts.map((product, index) => (
+                <a key={index} className="group" href="">
+                     <div className="relative">
+                    <img className="relative rounded-2xl w-full h-[380px] object-cover" src={product.image} alt={product.title} />
+                    <img
+                            className="absolute w-full h-[380px] object-cover inset-0 rounded-2xl opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100"
+                            src={product.image2} // فرض کنید سرور تصویر هاور را ارسال می‌کند.
+                            alt={`${product.title} hover`}
+                        />
+                    <div className="absolute rounded-2xl bottom-0 bg-black/50 w-full py-8 text-white">
+                        <h3 className="mr-4 mb-3">{product.title}</h3>
+                        <div className="flex justify-between mx-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
+                        </svg>
+                        <h3 className="">{product.price}</h3>
+                        </div>
+                    </div>
+                </div>
+                </a>
+               
+                 ))}        
+
+        </div>
+      </div>
+    </div>
+    <div className="flex justify-center mt-6">
+    <button
+          onClick={() => changePage(currentPage - 1)}
+          disabled={currentPage === 1}
+          className={`px-5 py-2 bg-black text-white rounded-xl ${
+            currentPage === 1 ? "disabled-button" : ""
+          }`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+    </button>
+  {Array.from({ length: totalPages }, (_, index) => {
+    const pageNumber = index + 1;
+
+    // محاسبه اینکه کدام صفحات نمایش داده شوند
+    const shouldShow =
+      pageNumber === 1 || // اولین صفحه همیشه نمایش داده شود
+      pageNumber === totalPages || // آخرین صفحه همیشه نمایش داده شود
+      (pageNumber >= currentPage - 4 && pageNumber <= currentPage + 4); // صفحات نزدیک به صفحه فعلی
+
+    if (shouldShow) {
+      return (
+        <button
+          key={index}
+          className={`px-4 py-2 ${
+            currentPage === pageNumber
+              ? "text-black underline"
+              : "text-gray-600"
+          } font-mono ltr text-4xl`}
+          onClick={() => changePage(pageNumber)}
+        >
+          {pageNumber}
+        </button>
+      );
+    }
+
+    // نمایش نقاط "..." برای فاصله‌های بین صفحات
+    if (
+      (pageNumber === currentPage - 5 || pageNumber === currentPage + 5) &&
+      !(pageNumber === 2 || pageNumber === totalPages - 1)
+    ) {
+      return (
+        <span key={index} className="px-2 text-gray-400 text-3xl font-mono">
+          ...
+        </span>
+      );
+    }
+
+    return null; // عدم نمایش بقیه صفحات
+  })}
+   <button
+          onClick={() => changePage(currentPage + 1)}
+          disabled={currentPage === 17}
+          className={`px-5 py-2 text-white bg-black rounded-xl ${
+            currentPage === 17 ? "button-disabled" : ""
+          }`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+    </button>
+</div>
+     <Footer />
+    </>
+   )
+}
+
+export default Products;

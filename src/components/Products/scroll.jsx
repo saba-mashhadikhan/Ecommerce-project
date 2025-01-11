@@ -7,7 +7,7 @@ import { useEffect } from "react";
     
         useEffect(() => {
             if (id) { // اگر آیدی وجود داشت درخواست بده
-                axios.get(`http://localhost:4000/product/${id}`)
+                axios.get(`https://ecommerce-data-6460.onrender.com/product/${id}`)
                     .then(res => setData([res.data])) // فرض کردم سرور یک شیء محصول برمی‌گرداند
                     .catch(err => console.log(err));
             }
